@@ -6,6 +6,8 @@ services:
     image: mongo:latest
     ports:
       - "27017:27017"
+    volumes:
+      - fileshare:/data/db
   
   redis.cache:
     container_name: distributed-lock-redis
@@ -35,6 +37,8 @@ services:
         - redis.cache
     ports:
         - "5001:8081"
+    deploy:
+        replicas: 3
 
 volumes:
   fileshare:
