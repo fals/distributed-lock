@@ -13,6 +13,11 @@ namespace Consumer.Infrastructure
     {
         private readonly MongoDb database;
 
+        public TransactionRepository(MongoDb database)
+        {
+            this.database = database;
+        }
+
         public async Task AddRange(IEnumerable<CreditCardTransaction> transactions)
         {
             await database.CreditCardTransactions.InsertManyAsync(transactions);

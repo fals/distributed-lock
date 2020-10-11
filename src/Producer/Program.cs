@@ -27,7 +27,7 @@ namespace Producer
                 var filepath = Path.Combine("/mnt/fileshare", Guid.NewGuid().ToString());
                 using StreamWriter writer = new StreamWriter(filepath);
 
-                for (int i = 0; i < 100000; i++)
+                for (int i = 0; i < 1000; i++)
                 {
                     var fakeData = builder.Generate();
 

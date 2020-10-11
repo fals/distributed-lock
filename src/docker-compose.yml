@@ -25,7 +25,6 @@ services:
       - fileshare:/mnt/fileshare
       
   consumer:
-    container_name: distributed-lock-consumer
     image: distributed-lock-consumer
     build:
         context: Consumer
@@ -33,8 +32,8 @@ services:
     depends_on:
         - nosql.data
         - redis.cache
-    ports:
-        - "5001:8081"
+    # ports:
+    #     - "5001:8081"
     volumes:
       - fileshare:/mnt/fileshare
 

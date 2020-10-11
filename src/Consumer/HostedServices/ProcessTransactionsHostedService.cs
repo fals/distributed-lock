@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,7 +13,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Consumer.HostedServices
 {
-
     public class ProcessTransactionsHostedService : IHostedService, IDisposable
     {
         private readonly IServiceProvider _services;
@@ -28,7 +29,7 @@ namespace Consumer.HostedServices
         {
             _logger.LogInformation($"{nameof(ProcessTransactionsHostedService)} Service running.");
 
-            _timer = new Timer(Process, null, TimeSpan.Zero, TimeSpan.FromSeconds(60));
+            _timer = new Timer(Process, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
             return Task.CompletedTask;
         }
@@ -52,11 +53,13 @@ namespace Consumer.HostedServices
                         await database.AddRange(parsedData);
 
                         File.Delete(fileToProcess);
+
+                        _logger.LogInformation("File Processed: {0}", fileToProcess);
                     }
                 }
                 catch (System.Exception ex)
                 {
-                    _logger.LogError("FailedToProcessFile", ex);
+                    _logger.LogWarning("Error: {0} | {1}", ex.Message, fileToProcess);
                 }
                 finally
                 {
@@ -65,27 +68,33 @@ namespace Consumer.HostedServices
             }
         }
 
-        private CreditCardTransaction[] ParseData(string[] data)
+        private IEnumerable<CreditCardTransaction> ParseData(string[] data)
         {
-            var parsedData = new CreditCardTransaction[data.Length];
+            var parsedData = new List<CreditCardTransaction>(data.Length);
 
             for (int i = 0; i < data.Length; i++)
             {
-                var columns = data[i].Split("\t");
-
-                var transaction = new CreditCardTransaction
+                try
                 {
-                    TransactionId = columns[0],
-                    Owner = columns[1],
-                    AccountNumber = columns[2],
-                    CardNumber = columns[3],
-                    Currency = columns[4],
-                    Amount = int.Parse(columns[5]) / 100,
-                    MerchantName = columns[6],
-                    Date = Convert.ToDateTime(columns[7])
-                };
 
-                parsedData[i] = transaction;
+                    var columns = data[i].Split("\t");
+                    var transaction = new CreditCardTransaction
+                    {
+                        TransactionId = columns[0],
+                        Owner = columns[1],
+                        AccountNumber = columns[2],
+                        CardNumber = columns[3],
+                        Currency = columns[4],
+                        Amount = int.Parse(columns[5]) / 100,
+                        MerchantName = columns[6],
+                        Date = DateTime.ParseExact(columns[7], "yyyyMMdd", CultureInfo.InvariantCulture)
+                    };
+
+                    parsedData.Add(transaction);
+                }
+                catch {
+                    
+                }
             }
 
             return parsedData;

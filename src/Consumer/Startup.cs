@@ -23,6 +23,8 @@ namespace Consumer
 
         public void ConfigureServices(IServiceCollection services)
         {
+
+            Thread.Sleep(20000);
             services.Configure<ConsumerSettings>(Configuration);
             services.AddControllers();
 
