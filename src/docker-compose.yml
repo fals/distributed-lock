@@ -5,13 +5,15 @@ services:
     container_name: distributed-lock-mongodb
     image: mongo:latest
     ports:
-      - "27017:27017"  # Important: In a production environment your should remove the external port
+      - "27017:27017"
   
   redis.cache:
     container_name: distributed-lock-redis
     image: redis:alpine
     ports:
       - "6379:6379"
+    volumes:
+      - fileshare:/mnt/fileshare
 
   producer:
     container_name: distributed-lock-producer
@@ -19,6 +21,8 @@ services:
     build:
       context: Producer
       dockerfile: Dockerfile
+    volumes:
+      - fileshare:/mnt/fileshare
       
   consumer:
     container_name: distributed-lock-consumer
@@ -33,4 +37,9 @@ services:
         - "5001:8081"
 
 volumes:
-  mssql_server_data:
+  fileshare:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: c:/temp/docker/fileshare

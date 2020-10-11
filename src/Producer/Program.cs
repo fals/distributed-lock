@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
+using Bogus;
 
 namespace Producer
 {
@@ -7,11 +9,31 @@ namespace Producer
     {
         static async Task Main(string[] args)
         {
-            var counter = 0;
-            var max = args.Length != 0 ? Convert.ToInt32(args[0]) : -1;
-            while (max == -1 || counter < max)
+            Randomizer.Seed = new Random(8675309);
+
+            var builder = new Faker<CreditCardTransaction>()
+            .StrictMode(true)
+            .RuleFor(o => o.TransactionId, f => f.Random.AlphaNumeric(10))
+            .RuleFor(o => o.Owner, f => f.Name.FullName())
+            .RuleFor(o => o.CardNumber, f => f.Finance.CreditCardNumber())
+            .RuleFor(o => o.AccountNumber, f => f.Finance.Account())
+            .RuleFor(o => o.Currency, f => f.Finance.Currency().Code)
+            .RuleFor(o => o.Amount, f => f.Finance.Amount(1, 10000, 2).ToString().Replace(".", string.Empty))
+            .RuleFor(o => o.MerchantName, f => f.Company.CompanyName())
+            .RuleFor(o => o.Date, f => f.Date.Recent().ToString("yyyyMMdd"));
+
+            while (true)
             {
-                Console.WriteLine($"Counter: {++counter}");
+                var filepath = Path.Combine("/mnt/fileshare", Guid.NewGuid().ToString());
+                using StreamWriter writer = new StreamWriter(filepath);
+
+                for (int i = 0; i < 1000; i++)
+                {
+                    var fakeData = builder.Generate();
+
+                    writer.WriteLine(fakeData.DumpAsTabBased());
+                }
+
                 await Task.Delay(1000);
             }
         }
