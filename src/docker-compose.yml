@@ -20,7 +20,7 @@ services:
       context: Producer
       dockerfile: Dockerfile
       
-  producer:
+  consumer:
     container_name: distributed-lock-consumer
     image: distributed-lock-consumer
     build:
