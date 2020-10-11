@@ -19,7 +19,7 @@ services:
     build:
       context: Producer
       dockerfile: Dockerfile
-
+      
   producer:
     container_name: distributed-lock-consumer
     image: distributed-lock-consumer
@@ -30,7 +30,7 @@ services:
         - nosql.data
         - redis.cache
     ports:
-        - "5001:80"
+        - "5001:8081"
 
 volumes:
   mssql_server_data:

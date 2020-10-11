@@ -10,6 +10,7 @@ public class RedisCacheDistributedLock : IDistributedLock
     private readonly ConnectionMultiplexer _redis;
     private readonly IDatabase _database;
     private const string CachePrefix = "ConsumerLockedFile__";
+    private const int DefaultExpirationTime = 3600;
 
     public RedisCacheDistributedLock(ILogger<RedisCacheDistributedLock> logger, ConnectionMultiplexer redis, IDatabase database)
     {
@@ -25,7 +26,7 @@ public class RedisCacheDistributedLock : IDistributedLock
 
         if (lockedResource.IsNullOrEmpty)
         {
-            var created = await _database.StringSetAsync(lockName, Environment.MachineName);
+            var created = await _database.StringSetAsync(lockName, Environment.MachineName, TimeSpan.FromSeconds(DefaultExpirationTime));
 
             return created;
         }
