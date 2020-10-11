@@ -1,3 +1,6 @@
+using System.Threading;
+using Consumer.HostedServices;
+using Consumer.Infrastructure;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -20,20 +23,29 @@ namespace Consumer
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ConsumerSettings>(Configuration);
             services.AddControllers();
 
-             services.AddSingleton<ConnectionMultiplexer>(sp =>
-            {
-                var settings = sp.GetRequiredService<IOptions<ConsumerSettings>>().Value;
-                var configuration = ConfigurationOptions.Parse(settings.ConnectionStrings.RedisCache, true);
+            services.AddSingleton<ConnectionMultiplexer>(sp =>
+           {
+               try
+               {
+                   var settings = sp.GetRequiredService<IOptions<ConsumerSettings>>().Value;
+                   var configuration = ConfigurationOptions.Parse(settings.ConnectionStrings.RedisCache, true);
 
-                configuration.ResolveDns = true;
+                   configuration.ResolveDns = true;
 
-                return ConnectionMultiplexer.Connect(configuration);
-            });
+                   return ConnectionMultiplexer.Connect(configuration);
+               }
+               catch (System.Exception)
+               {
+                   throw;
+               }
+           });
 
+            services.AddSingleton<MongoDb>();
             services.AddScoped<IDistributedLock, RedisCacheDistributedLock>();
-            services.AddScoped<MongoDb>();
+            services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddHostedService<ProcessTransactionsHostedService>();
         }
 

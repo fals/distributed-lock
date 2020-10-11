@@ -1,31 +1,42 @@
+using Consumer.Entities;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
-public class MongoDb
+namespace Consumer.Infrastructure
 {
-    private readonly IMongoDatabase _database;
-
-    public MongoDb(IOptions<ConsumerSettings> settings)
+    public class MongoDb
     {
-        var mongoClient = new MongoClient(settings.Value.ConnectionStrings.MongoDb);
-        _database = mongoClient.GetDatabase(settings.Value.ConnectionStrings.MongoDatabase);
-        Map();
-    }
+        private readonly IMongoDatabase _database;
 
-    internal IMongoCollection<CreditCardTransaction> CreditCardTransactions
-    {
-        get
+        public MongoDb(IOptions<ConsumerSettings> settings)
         {
-            return _database.GetCollection<CreditCardTransaction>("CreditCardTransactions");
+            try
+            {
+                var mongoClient = new MongoClient(settings.Value.ConnectionStrings.MongoDb);
+                _database = mongoClient.GetDatabase(settings.Value.ConnectionStrings.MongoDatabase);
+                Map();
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
         }
-    }
 
-    private void Map()
-    {
-        BsonClassMap.RegisterClassMap<CreditCardTransaction>(cm =>
+        internal IMongoCollection<CreditCardTransaction> CreditCardTransactions
         {
-            cm.AutoMap();
-        });
+            get
+            {
+                return _database.GetCollection<CreditCardTransaction>("CreditCardTransactions");
+            }
+        }
+
+        private void Map()
+        {
+            BsonClassMap.RegisterClassMap<CreditCardTransaction>(cm =>
+            {
+                cm.AutoMap();
+            });
+        }
     }
 }

@@ -7,15 +7,13 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - fileshare:/data/db
+      - data:/data/db
   
   redis.cache:
     container_name: distributed-lock-redis
     image: redis:alpine
     ports:
       - "6379:6379"
-    volumes:
-      - fileshare:/mnt/fileshare
 
   producer:
     container_name: distributed-lock-producer
@@ -37,8 +35,8 @@ services:
         - redis.cache
     ports:
         - "5001:8081"
-    deploy:
-        replicas: 3
+    volumes:
+      - fileshare:/mnt/fileshare
 
 volumes:
   fileshare:
@@ -47,3 +45,9 @@ volumes:
       o: bind
       type: none
       device: c:/temp/docker/fileshare
+  data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: c:/temp/docker/data
