@@ -1,0 +1,36 @@
+version: '3.4'
+
+services:
+  nosql.data:
+    container_name: distributed-lock-mongodb
+    image: mongo:latest
+    ports:
+      - "27017:27017"  # Important: In a production environment your should remove the external port
+  
+  redis.cache:
+    container_name: distributed-lock-redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  producer:
+    container_name: distributed-lock-producer
+    image: distributed-lock-producer
+    build:
+      context: Producer
+      dockerfile: Dockerfile
+
+  producer:
+    container_name: distributed-lock-consumer
+    image: distributed-lock-consumer
+    build:
+        context: Consumer
+        dockerfile: Dockerfile
+    depends_on:
+        - nosql.data
+        - redis.cache
+    ports:
+        - "5001:80"
+
+volumes:
+  mssql_server_data:
