@@ -49,8 +49,8 @@ namespace Consumer
 
 
             services.AddSingleton<MongoDb>();
-            services.AddScoped<IDistributedLock, RedisCacheDistributedLock>();
-            //services.AddScoped<IDistributedLock, ZooKeeperDistributedLock>();
+            //services.AddScoped<IDistributedLock, RedisCacheDistributedLock>();
+            services.AddScoped<IDistributedLock, ZooKeeperDistributedLock>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddHostedService<ProcessTransactionsHostedService>();
         }

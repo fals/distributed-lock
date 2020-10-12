@@ -36,6 +36,7 @@ services:
     #     - "5001:8081"
     volumes:
       - fileshare:/mnt/fileshare
+      - logs:/mnt/logs
   zoo1:
     image: zookeeper
     restart: always
@@ -81,3 +82,9 @@ volumes:
       o: bind
       type: none
       device: c:/temp/docker/data
+  logs:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: c:/temp/docker/logs
