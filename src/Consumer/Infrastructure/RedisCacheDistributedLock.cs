@@ -26,7 +26,7 @@ namespace Consumer.Infrastructure
             _database = redis.GetDatabase();
         }
 
-        public async Task<bool> Lock(string resourceName, string fenceToken)
+        public async Task<bool> Lock(string resourceName, string nodeName)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace Consumer.Infrastructure
                 var lockedResource = await _database.StringGetAsync(lockName);
                 if (lockedResource.IsNullOrEmpty)
                 {
-                    var created = await _database.StringSetAsync(lockName, fenceToken, TimeSpan.FromSeconds(DefaultExpirationLockTime));
+                    var created = await _database.StringSetAsync(lockName, nodeName, TimeSpan.FromSeconds(DefaultExpirationLockTime));
 
                     return created;
                 }
@@ -50,7 +50,7 @@ namespace Consumer.Infrastructure
             return false;
         }
 
-        public async Task<bool> Unlock(string resourceName, string fenceToken)
+        public async Task<bool> Unlock(string resourceName, string nodeName)
         {
             try
             {
@@ -61,7 +61,7 @@ namespace Consumer.Infrastructure
                 // Guarantee that the fence token is used, so only the node that claimed
                 // the lock first can remove its lock
                 //
-                if (lockedResource.IsNullOrEmpty && lockedResource == fenceToken)
+                if (!lockedResource.IsNullOrEmpty && lockedResource == nodeName)
                 {
                     return await _database.KeyDeleteAsync($"{CachePrefix}{resourceName}");
                 }

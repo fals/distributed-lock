@@ -8,4 +8,5 @@ public class ConnectionStrings
     public string RedisCache { get; set; }
     public string MongoDb { get; set; }
     public string MongoDatabase { get; set; }
+    public string ZooKeeper { get; set; }
 }

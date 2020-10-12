@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using org.apache.zookeeper;
 using StackExchange.Redis;
 
 namespace Consumer
@@ -29,24 +30,27 @@ namespace Consumer
             services.AddControllers();
 
             services.AddSingleton<ConnectionMultiplexer>(sp =>
-           {
-               try
-               {
-                   var settings = sp.GetRequiredService<IOptions<ConsumerSettings>>().Value;
-                   var configuration = ConfigurationOptions.Parse(settings.ConnectionStrings.RedisCache, true);
+            {
+                var settings = sp.GetRequiredService<IOptions<ConsumerSettings>>().Value;
+                var configuration = ConfigurationOptions.Parse(settings.ConnectionStrings.RedisCache, true);
 
-                   configuration.ResolveDns = true;
+                configuration.ResolveDns = true;
 
-                   return ConnectionMultiplexer.Connect(configuration);
-               }
-               catch (System.Exception)
-               {
-                   throw;
-               }
-           });
+                return ConnectionMultiplexer.Connect(configuration);
+            });
+
+            services.AddSingleton<ZooKeeper>(sp =>
+            {
+                var settings = sp.GetRequiredService<IOptions<ConsumerSettings>>().Value;
+                var logger = sp.GetRequiredService<ILogger<LogWatcher>>();
+                var watcher = new LogWatcher(logger);
+                return new ZooKeeper(settings.ConnectionStrings.ZooKeeper, 30000, watcher);
+            });
+
 
             services.AddSingleton<MongoDb>();
             services.AddScoped<IDistributedLock, RedisCacheDistributedLock>();
+            //services.AddScoped<IDistributedLock, ZooKeeperDistributedLock>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddHostedService<ProcessTransactionsHostedService>();
         }
