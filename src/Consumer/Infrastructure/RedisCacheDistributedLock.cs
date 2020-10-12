@@ -44,7 +44,7 @@ namespace Consumer.Infrastructure
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("LockFailed", ex);
+                _logger.LogError(ex, "LockFailed");
             }
 
             return false;
@@ -68,7 +68,7 @@ namespace Consumer.Infrastructure
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("UnlockFailed", ex);
+                _logger.LogError(ex, "UnlockFailed");
             }
 
             return false;

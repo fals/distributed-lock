@@ -21,7 +21,7 @@ namespace Consumer.Infrastructure
         {
             try
             {
-                var lockName = $"consumer/{resourceName}";
+                var lockName = $"/consumer{resourceName}";
                 var data = Encoding.UTF8.GetBytes(nodeName);
                 await _zooKeeper.createAsync(lockName, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
                 await _zooKeeper.getChildrenAsync(lockName);
@@ -31,7 +31,7 @@ namespace Consumer.Infrastructure
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("LockFailed", ex);
+                _logger.LogError(ex, "LockFailed");
             }
             return false;
         }
@@ -40,7 +40,7 @@ namespace Consumer.Infrastructure
         {
             try
             {
-                var lockName = $"{nodeName}/{resourceName}";
+                var lockName = $"/consumer{resourceName}";
 
                 await _zooKeeper.deleteAsync(lockName);
 
@@ -48,7 +48,7 @@ namespace Consumer.Infrastructure
             }
             catch (System.Exception ex)
             {
-                _logger.LogError("UnlockFailed", ex);
+                _logger.LogError(ex, "UnlockFailed");
             }
             
             return false;
