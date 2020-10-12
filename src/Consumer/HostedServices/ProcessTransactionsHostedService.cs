@@ -19,8 +19,7 @@ namespace Consumer.HostedServices
         private readonly ILogger<ProcessTransactionsHostedService> _logger;
         private Timer _timer;
         //
-        // This is the guanrantee that only this node can remove the lock from 
-        // the resourse
+        // This is the guanrantee that only this node can remove the lock
         //
         private static readonly string _fenceToken = Guid.NewGuid().ToString();
 
