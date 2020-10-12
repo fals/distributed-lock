@@ -18,6 +18,11 @@ namespace Consumer.HostedServices
         private readonly IServiceProvider _services;
         private readonly ILogger<ProcessTransactionsHostedService> _logger;
         private Timer _timer;
+        //
+        // This is the guanrantee that only this node can remove the lock from 
+        // the resourse
+        //
+        private static readonly string _fenceToken = Guid.NewGuid().ToString();
 
         public ProcessTransactionsHostedService(IServiceProvider services, ILogger<ProcessTransactionsHostedService> logger)
         {
@@ -45,7 +50,7 @@ namespace Consumer.HostedServices
 
                 try
                 {
-                    if (fileExists && await distributedLock.Lock(fileToProcess))
+                    if (fileExists && await distributedLock.Lock(fileToProcess, _fenceToken))
                     {
                         var data = GetData(fileToProcess);
                         var parsedData = ParseData(data);
@@ -63,7 +68,7 @@ namespace Consumer.HostedServices
                 }
                 finally
                 {
-                    await distributedLock.Unlock(fileToProcess);
+                    await distributedLock.Unlock(fileToProcess, _fenceToken);
                 }
             }
         }
@@ -76,7 +81,6 @@ namespace Consumer.HostedServices
             {
                 try
                 {
-
                     var columns = data[i].Split("\t");
                     var transaction = new CreditCardTransaction
                     {
@@ -92,8 +96,9 @@ namespace Consumer.HostedServices
 
                     parsedData.Add(transaction);
                 }
-                catch {
-                    
+                catch
+                {
+
                 }
             }
 

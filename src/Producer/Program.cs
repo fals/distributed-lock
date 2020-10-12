@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Bogus;
@@ -25,14 +26,16 @@ namespace Producer
             while (true)
             {
                 var filepath = Path.Combine("/mnt/fileshare", Guid.NewGuid().ToString());
-                using StreamWriter writer = new StreamWriter(filepath);
+                var lines = new List<string>();
 
                 for (int i = 0; i < 1000; i++)
                 {
                     var fakeData = builder.Generate();
 
-                    writer.WriteLine(fakeData.DumpAsTabBased());
+                    lines.Add(fakeData.DumpAsTabBased());
                 }
+
+                File.WriteAllLines(filepath, lines);
 
                 await Task.Delay(1000);
             }
