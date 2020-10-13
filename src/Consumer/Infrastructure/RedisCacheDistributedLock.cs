@@ -11,10 +11,10 @@ namespace Consumer.Infrastructure
         private readonly ConnectionMultiplexer _redis;
         private readonly IDatabase _database;
         private const string CachePrefix = "ConsumerLockedFile__";
-        
+
         //
         // Because this lock is based on best effort and fence tokens,
-        // if the node craches for any reason, we need to put an leasing expiration
+        // if the node crashes for any reason, we need to put an leasing expiration
         // otherwise deadlock. Tune this time based on your own needs
         //
         private const int DefaultExpirationLockTime = 3600;
@@ -34,12 +34,15 @@ namespace Consumer.Infrastructure
                 // This is a best effort attemp to lock the resource
                 //
                 var lockName = $"{CachePrefix}{resourceName}";
-                var lockedResource = await _database.StringGetAsync(lockName);
-                if (lockedResource.IsNullOrEmpty)
+                var exists = await _database.KeyExistsAsync(lockName);
+                if (!exists)
                 {
-                    var created = await _database.StringSetAsync(lockName, fenceToken, TimeSpan.FromSeconds(DefaultExpirationLockTime));
-
-                    return created;
+                    return await _database.StringSetAsync(
+                        lockName,
+                        fenceToken, 
+                        TimeSpan.FromSeconds(DefaultExpirationLockTime), 
+                        When.NotExists, 
+                        CommandFlags.DemandMaster);
                 }
             }
             catch (System.Exception ex)
