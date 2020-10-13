@@ -17,12 +17,12 @@ namespace Consumer.Infrastructure
             _zooKeeper = zooKeeper;
         }
 
-        public async Task<bool> Lock(string resourceName, string nodeName)
+        public async Task<bool> Lock(string resourceName, string fenceToken)
         {
             try
             {
-                var lockName = $"/consumer{resourceName}";
-                var data = Encoding.UTF8.GetBytes(nodeName);
+                var lockName = $"/consumer/lock-{resourceName.Replace(@"/", "_")}";
+                var data = Encoding.UTF8.GetBytes(fenceToken);
                 await _zooKeeper.createAsync(lockName, data, Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
                 await _zooKeeper.getChildrenAsync(lockName);
                 var exists = await _zooKeeper.existsAsync(lockName);
@@ -36,11 +36,11 @@ namespace Consumer.Infrastructure
             return false;
         }
 
-        public async Task<bool> Unlock(string resourceName, string nodeName)
+        public async Task<bool> Unlock(string resourceName, string fenceToken)
         {
             try
             {
-                var lockName = $"/consumer{resourceName}";
+                var lockName = $"/consumer/lock-{resourceName.Replace(@"/", "_")}";
 
                 await _zooKeeper.deleteAsync(lockName);
 

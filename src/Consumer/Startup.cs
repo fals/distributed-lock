@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using Consumer.HostedServices;
 using Consumer.Infrastructure;
@@ -24,7 +25,6 @@ namespace Consumer
 
         public void ConfigureServices(IServiceCollection services)
         {
-
             Thread.Sleep(20000);
             services.Configure<ConsumerSettings>(Configuration);
             services.AddControllers();
@@ -49,8 +49,13 @@ namespace Consumer
 
 
             services.AddSingleton<MongoDb>();
-            //services.AddScoped<IDistributedLock, RedisCacheDistributedLock>();
-            services.AddScoped<IDistributedLock, ZooKeeperDistributedLock>();
+            
+            if (Environment.GetEnvironmentVariable("USE_REDIS_DISTRIBUTED_LOCK") == "1")
+                services.AddScoped<IDistributedLock, RedisCacheDistributedLock>();
+            
+            if(Environment.GetEnvironmentVariable("USE_ZOOKEEPER_DISTRIBUTED_LOCK") == "1")
+                services.AddScoped<IDistributedLock, ZooKeeperDistributedLock>();
+            
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddHostedService<ProcessTransactionsHostedService>();
         }

@@ -8,12 +8,6 @@ services:
       - "27017:27017"
     volumes:
       - data:/data/db
-  
-  redis.cache:
-    container_name: distributed-lock-redis
-    image: redis:alpine
-    ports:
-      - "6379:6379"
 
   producer:
     container_name: distributed-lock-producer
@@ -31,43 +25,23 @@ services:
         dockerfile: Dockerfile
     depends_on:
         - nosql.data
-        - redis.cache
+        - zookeeper
     # ports:
     #     - "5001:8081"
     volumes:
       - fileshare:/mnt/fileshare
       - logs:/mnt/logs
-  zoo1:
+    environment:
+      - USE_ZOOKEEPER_DISTRIBUTED_LOCK=1
+      
+  zookeeper:
     image: zookeeper
     restart: always
-    hostname: zoo1
+    hostname: zookeeper
     ports:
       - 2181:2181
-    environment:
-      ZOO_MY_ID: 1
-      ZOO_SERVERS: server.1=0.0.0.0:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=zoo3:2888:3888;2181
-
-  zoo2:
-    image: zookeeper
-    restart: always
-    hostname: zoo2
-    ports:
-      - 2182:2181
-    environment:
-      ZOO_MY_ID: 2
-      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=0.0.0.0:2888:3888;2181 server.3=zoo3:2888:3888;2181
-
-  zoo3:
-    image: zookeeper
-    restart: always
-    hostname: zoo3
-    ports:
-      - 2183:2181
-    environment:
-      ZOO_MY_ID: 3
-      ZOO_SERVERS: server.1=zoo1:2888:3888;2181 server.2=zoo2:2888:3888;2181 server.3=0.0.0.0:2888:3888;2181
-
-
+      - 2888:2888
+      - 3888:3888
   
 volumes:
   fileshare:
