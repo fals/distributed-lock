@@ -58,6 +58,8 @@ namespace Consumer.HostedServices
 
                         File.Delete(fileToProcess);
 
+                        await Task.Delay(10000);
+
                         _logger.LogInformation("File Processed: {0}", fileToProcess);
                     }
                 }

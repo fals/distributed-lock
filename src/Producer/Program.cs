@@ -28,7 +28,7 @@ namespace Producer
                 var filepath = Path.Combine("/mnt/fileshare", Guid.NewGuid().ToString());
                 var lines = new List<string>();
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 10000; i++)
                 {
                     var fakeData = builder.Generate();
 
@@ -37,7 +37,7 @@ namespace Producer
 
                 File.WriteAllLines(filepath, lines);
 
-                await Task.Delay(1000);
+                await Task.Delay(10000);
             }
         }
     }
